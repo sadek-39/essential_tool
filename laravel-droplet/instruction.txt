@@ -1,0 +1,4 @@
+1. Follow the instructions from Droplet.md in this directory
+2. Configure your nginx, php, mysql and necessary for your project
+3. Configure docker if you are using.[optional]
+4. copy .env.example to .env by running this command: cp .env.example .env

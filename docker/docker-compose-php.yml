@@ -1,0 +1,63 @@
+version: "3.7"
+
+services:
+
+  core:
+    ports:
+      - "80:80"
+    expose:
+      - 80
+    restart: always
+    image: nginx:latest
+    container_name: NGINX
+    volumes:
+      - ./:/public_html:rw
+      - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf:rw
+      - ./conf/nginx/conf.d/:/etc/nginx/conf.d/:rw
+    networks:
+      - custom_network
+  php:
+    container_name: PHP
+    restart: always
+    build:
+      context: docker/conf/php
+    volumes:
+      - ./:/public_html:rw
+      - ./conf/php/www.conf:/usr/local/etc/php-fpm.d/www.conf:rw
+      - ./conf/php/php.ini:/usr/local/etc/php/php.ini:rw
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "3"
+    ports:
+      - 9000
+    networks:
+      - custom_network
+  mysql:
+    image: library/mysql:8.0
+    container_name: MYSQL
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./provision/mysql/init:/docker-entrypoint-initdb.d
+      - ./data/mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_PASSWORD: "userpass"
+      MYSQL_USER: "user"
+    ports:
+      - 3306:3306
+    networks:
+      - custom_network
+  redis:
+    image: "redis:alpine"
+    container_name: REDIS
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/var/lib/redis
+    networks:
+      - custom_network
+networks:
+  custom_network:
+    driver: bridge
